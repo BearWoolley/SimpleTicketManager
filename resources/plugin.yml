@@ -1,0 +1,39 @@
+name: SimpleTicketManager
+main: uk.co.joshuawoolley.simpleticketmanager.SimpleTicketManager
+version: 2.0.0
+
+commands:
+  report:
+    description: Commands to report players
+    usage: /<command> [reason] [description]
+    permission: report.use
+  ticket:
+    description: Commands to look at report
+    usage: /<command> [option] [ticket id]
+    permission: ticket.use
+
+permissions:
+  report.use:
+    description: Gives access to do reports
+    default: true
+  ticket.view:
+    description: Gives access to view reports
+    default: op
+  ticket.info:
+    description: Gives access to view info on a certain ticket
+    default: op
+  ticket.admin:
+    description: Gives access to claim, close and unclaim tickets
+    default: op
+  ticket.teleport:
+    description: Gives access to be able to teleport to tickets
+    default: op
+  ticket.stats:
+    description: Gives access to view ticket stats
+    default: op
+  ticket.reload:
+    description: Gives access to be able to reload the config and messages files
+    default: op
+  ticket.comments:
+    description: Gives access to add comments to a ticket
+    default: true

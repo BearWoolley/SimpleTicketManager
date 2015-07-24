@@ -1,0 +1,38 @@
+####################################
+#      Simple Ticket Manager       #
+#        Made by Jwoolley          #
+####################################
+
+#Set to true if you wish to allow other people to close tickets,
+#Set to false if you only want the person who claimed it to be able to close it
+allowotherstoclose: false
+
+#Displays about open tickets when admins join the server
+#Set to true to get messages, false to disable them
+adminmessages: true
+
+#Display to all staff when a ticket has been closed
+#Set to true if you want staff to get notices
+#Set to false if you don't want notices on close
+closenotice: true
+
+#Support for multiple servers
+#Uses server name from server.properties
+bungeecord: false
+
+#Log the amount of players online with each ticket
+players: false
+
+#How often the database should be updated
+#The amount of seconds you want
+updateTime: 600
+
+#Set to true if you wish to use MySQL
+mysql: false
+
+#Connection details for MySQL
+hostname: 
+port: 
+database: 
+username: 
+password: 
