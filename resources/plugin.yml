@@ -1,6 +1,6 @@
 name: SimpleTicketManager
 main: uk.co.joshuawoolley.simpleticketmanager.SimpleTicketManager
-version: 2.0.0
+version: 2.0.2
 
 commands:
   report:
@@ -18,7 +18,27 @@ permissions:
     default: true
   ticket.view:
     description: Gives access to view reports
-    default: op
+    children:
+       ticket.view.open: true
+       ticket.view.assigned: true
+       ticket.view.assigned.all: true
+       ticket.view.closed: true
+       ticket.view.closed.all: true
+  ticket.view.open:
+     description: Gives access to view open reports
+     default: op
+  ticket.view.assigned:
+     description: Gives access to view assigned reports
+     default: op
+  ticket.view.assigned.all:
+     description: Gives access to view all assigned reports
+     default: op
+  ticket.view.closed:
+     description: Gives access to view closed reports
+     default: op
+  ticket.view.closed.all:
+     description: Gives access to view all closed reports
+     default: op
   ticket.info:
     description: Gives access to view info on a certain ticket
     default: op

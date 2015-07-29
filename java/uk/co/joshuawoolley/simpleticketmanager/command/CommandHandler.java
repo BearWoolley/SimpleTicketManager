@@ -63,32 +63,48 @@ public class CommandHandler implements CommandExecutor {
 				Player player = (Player) sender;
 				if (args.length > 0) {
 					if (args[0].equalsIgnoreCase("view")) {
-						if (player.hasPermission("ticket.view")) {
-							if (args.length > 1) {
-								if (args[1].equalsIgnoreCase("open")) {
+						if (args.length > 1) {
+							if (args[1].equalsIgnoreCase("open")) {
+								if (player.hasPermission("ticket.view.open")) {
 									manager.printOpenTickets(sender);
-								} else if (args[1].equalsIgnoreCase("assigned")) {
-									if (args.length > 2) {
-										if (args[2].equalsIgnoreCase("all")) {
+								} else {
+									sender.sendMessage(tag + ChatColor.translateAlternateColorCodes('&', checkMessages(plugin.messageData.get("noPermission"))));
+								}
+							} else if (args[1].equalsIgnoreCase("assigned")) {
+								if (args.length > 2) {
+									if (args[2].equalsIgnoreCase("all")) {
+										if (player.hasPermission("ticket.view.assigned.all")) {
 											manager.printAllAssignedTickets(sender);
+										} else {
+											sender.sendMessage(tag + ChatColor.translateAlternateColorCodes('&', checkMessages(plugin.messageData.get("noPermission"))));
 										}
-									} else {
-										manager.printAssignedTickets(sender, player.getUniqueId().toString());
 									}
-								} else if (args[1].equalsIgnoreCase("closed")) {
-									if (args.length > 2) {
-										if (args[2].equalsIgnoreCase("all")) {
-											manager.printAllClosedTickets(sender);
-										}
+								} else {
+									if (player.hasPermission("ticket.view.assigned")) {
+										manager.printAssignedTickets(sender, player.getUniqueId().toString());
 									} else {
-										manager.printClosedTickets(sender, player.getUniqueId().toString());
+										sender.sendMessage(tag + ChatColor.translateAlternateColorCodes('&', checkMessages(plugin.messageData.get("noPermission"))));
 									}
 								}
-							} else {
-								sender.sendMessage(tag + ChatColor.translateAlternateColorCodes('&', checkMessages(plugin.messageData.get("ticketHelp1"))));
+							} else if (args[1].equalsIgnoreCase("closed")) {
+								if (args.length > 2) {
+									if (args[2].equalsIgnoreCase("all")) {
+										if (player.hasPermission("ticket.view.closed.all")) {
+											manager.printAllClosedTickets(sender);
+										} else {
+											sender.sendMessage(tag + ChatColor.translateAlternateColorCodes('&', checkMessages(plugin.messageData.get("noPermission"))));
+										}
+									}
+								} else {
+									if (player.hasPermission("ticket.view.closed")) {
+										manager.printClosedTickets(sender, player.getUniqueId().toString());
+									} else {
+										sender.sendMessage(tag + ChatColor.translateAlternateColorCodes('&', checkMessages(plugin.messageData.get("noPermission"))));
+									}
+								}
 							}
 						} else {
-							sender.sendMessage(tag + ChatColor.translateAlternateColorCodes('&', checkMessages(plugin.messageData.get("noPermission"))));
+							sender.sendMessage(tag + ChatColor.translateAlternateColorCodes('&', checkMessages(plugin.messageData.get("ticketHelp1"))));
 						}
 					} else if (args[0].equalsIgnoreCase("info")) {
 						if (player.hasPermission("ticket.info")) {

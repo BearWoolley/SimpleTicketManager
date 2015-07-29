@@ -34,10 +34,13 @@ public class TicketManager {
 	private String tag;
 	
 	private int ticketId;
+	private int maxTickets;
 	
 	private ArrayList<Ticket> allTickets;
 	private ArrayList<Ticket> ticketsToUpdate;
 	private ArrayList<Ticket> commentsToUpdate;
+	
+	private HashMap<String, Integer> claimedAmount;
 	
 	/**
 	 * Create manager to control Tickets
@@ -47,12 +50,14 @@ public class TicketManager {
 	 * @param query
 	 * 			Queries object to call database queries
 	 */
-	public TicketManager(SimpleTicketManager plugin, Queries query) {
+	public TicketManager(SimpleTicketManager plugin, Queries query, int maxTickets) {
 		this.plugin = plugin;
 		this.query = query;
+		this.maxTickets = maxTickets;
 		allTickets = new ArrayList<Ticket>();
 		ticketsToUpdate = new ArrayList<Ticket>();
 		commentsToUpdate = new ArrayList<Ticket>();
+		claimedAmount = new HashMap<String, Integer>();
 		
 		tag = ChatColor.translateAlternateColorCodes('&',plugin.messageData.get("tag"));
 	}
@@ -153,62 +158,77 @@ public class TicketManager {
 	public void startTask() {
 		long delay = plugin.getConfig().getLong("updateTime") * 20;
 		Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, new BukkitRunnable() {
-            public void run(){
-            	boolean successful = false;
-            	boolean noneUpdated = false;
-        		if (!ticketsToUpdate.isEmpty()) {
-        			Iterator<Ticket> it = ticketsToUpdate.iterator();
-        				while (it.hasNext()) {
-        					Ticket ticket = it.next();
-        					if (ticket.getState().equals(TicketStates.OPEN)) {
-            					try {
-									if (!query.checkIfTicketExists(ticket.getTicketId())) {
-										successful = query.insertTicket(ticket.getReportingPlayer(), ticket.getReason(), ticket.getDescription(), ticket.getPlayerAmount(), ticket.getWorld(), ticket.getDateCreated().getTime(), ticket.getLocation(), ticket.getServer());
-									} else {
-										successful = query.setUnclaimed(ticket.getTicketId());
+			public void run(){
+				boolean successful = false;
+				int noneUpdated = 0;
+				if (!ticketsToUpdate.isEmpty()) {
+					Iterator<Ticket> it = ticketsToUpdate.iterator();
+					while (it.hasNext()) {
+						Ticket ticket = it.next();
+						if (ticket.getState().equals(TicketStates.OPEN)) {
+							try {
+								if (!query.checkIfTicketExists(ticket.getTicketId())) {
+									successful = query.insertTicket(ticket.getReportingPlayer(), ticket.getReason(), ticket.getDescription(), ticket.getPlayerAmount(), ticket.getWorld(), ticket.getDateCreated().getTime(), ticket.getLocation(), ticket.getServer());
+								} else {
+									successful = query.setUnclaimed(ticket.getTicketId());
+								}
+							} catch (SQLException e) {
+								e.printStackTrace();
+							}
+						} else if (ticket.getState().equals(TicketStates.ASSIGNED)) {
+							successful = query.setAssigned(ticket.getAssignedTo(), ticket.getTicketId());
+						} else if (ticket.getState().equals(TicketStates.CLOSED)) {
+							successful = query.setClosed(ticket.getClosedBy(), ticket.getAssignedTo(), ticket.getTicketId(), ticket.getClosedDate().getTime());
+						}
+						if (!successful) {
+							Bukkit.getLogger().severe("[SimpleTicketManager] There was a problem with updating 1 ticket to the database");
+						}
+						it.remove();
+						noneUpdated = 1;
+					}
+				}
+				if (!commentsToUpdate.isEmpty()) {
+					Iterator<Ticket> it = commentsToUpdate.iterator();
+					while (it.hasNext()) {
+						Ticket ticket = it.next();
+						HashMap<Integer, HashMap<String, String>> commentsMap = ticket.getComments();
+						for (Entry<Integer, HashMap<String, String>> entryComments : commentsMap.entrySet()) {
+							HashMap<String, String> comments = entryComments.getValue();
+							for (Entry<String, String> entry : comments.entrySet()) {
+								try {
+									if(!query.checkIfCommentExists(entry.getValue(),entry.getKey(), ticket.getTicketId())) {
+										query.insertComment(entry.getValue(),entry.getKey(), ticket.getTicketId());
+										noneUpdated = 1;
 									}
 								} catch (SQLException e) {
 									e.printStackTrace();
 								}
-            				} else if (ticket.getState().equals(TicketStates.ASSIGNED)) {
-            					successful = query.setAssigned(ticket.getAssignedTo(), ticket.getTicketId());
-            				} else if (ticket.getState().equals(TicketStates.CLOSED)) {
-            					successful = query.setClosed(ticket.getClosedBy(), ticket.getAssignedTo(), ticket.getTicketId(), ticket.getClosedDate().getTime());
-            				}
-            				if (!successful) {
-            					Bukkit.getLogger().severe("[SimpleTicketManager] There was a problem with updating 1 ticket to the database");
-            				}
-            				it.remove();
-            				noneUpdated = true;
-        				}
-        				Bukkit.getLogger().info("[SimpleTicketManager] Database has sucessfully updated");
-        		}
-        		if (!commentsToUpdate.isEmpty()) {
-        			Iterator<Ticket> it = commentsToUpdate.iterator();
-    				while (it.hasNext()) {
-    					Ticket ticket = it.next();
-    					HashMap<Integer, HashMap<String, String>> commentsMap = ticket.getComments();
-    					for (Entry<Integer, HashMap<String, String>> entryComments : commentsMap.entrySet()) {
-    						HashMap<String, String> comments = entryComments.getValue();
-    						for (Entry<String, String> entry : comments.entrySet()) {
-        						try {
-    								if(!query.checkIfCommentExists(entry.getValue(),entry.getKey(), ticket.getTicketId())) {
-    									query.insertComment(entry.getValue(),entry.getKey(), ticket.getTicketId());
-    									noneUpdated = true;
-    								}
-    							} catch (SQLException e) {
-    								e.printStackTrace();
-    							}
-        				    }
-    					}
-    					it.remove();
-    				}
-    				Bukkit.getLogger().info("[SimpleTicketManager] Database has sucessfully updated");
-        		}
-        		if (!noneUpdated) {
-        			query.keepConnectionAlive();
-        			Bukkit.getLogger().info("[SimpleTicketManager] Database connection has been kept alive");
-        		}
+							}
+						}
+						it.remove();
+					}
+				}
+				if (plugin.getConfig().getBoolean("mysql")) {
+					int currentTickets = allTickets.size();
+					allTickets.clear();
+					try {
+						loadInTickets();
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+					int newTickets = allTickets.size();
+					if (newTickets > currentTickets) {
+						noneUpdated = 2;
+					}
+				}
+				if (noneUpdated == 0) {
+					query.keepConnectionAlive();
+					Bukkit.getLogger().info("[SimpleTicketManager] Database connection has been kept alive");
+				} else if (noneUpdated == 1) {
+					Bukkit.getLogger().info("[SimpleTicketManager] Database has sucessfully updated");
+				} else {
+					Bukkit.getLogger().info("[SimpleTicketManager] New tickets/comments have been added to the server");
+				}
 			}
 		}, 0L, delay);
 
@@ -227,12 +247,21 @@ public class TicketManager {
 	public void setTicketAssigned(CommandSender sender, String player, int id) {
 		Ticket ticket = getTicket(id);
 		ticketId = id;
+		int amount = 0;
+		if (claimedAmount.containsKey(player)) {
+			amount = claimedAmount.get(player);
+		}
 		if (ticket != null) {
 			if (ticket.getState().equals(TicketStates.OPEN)) {
-				ticket.setAssignedTo(player);
-				ticket.setState(TicketStates.ASSIGNED);
-				ticketsToUpdate.add(ticket);
-				sender.sendMessage(tag + ChatColor.translateAlternateColorCodes('&', checkMessages(plugin.messageData.get("claimTicket"))));
+				if (amount < maxTickets) {
+					ticket.setAssignedTo(player);
+					ticket.setState(TicketStates.ASSIGNED);
+					ticketsToUpdate.add(ticket);
+					increaseClaimedAmount(player);
+					sender.sendMessage(tag + ChatColor.translateAlternateColorCodes('&', checkMessages(plugin.messageData.get("claimTicket"))));
+				} else {
+					sender.sendMessage(tag + ChatColor.translateAlternateColorCodes('&', checkMessages(plugin.messageData.get("maxTickets"))));
+				}
 			} else {
 				sender.sendMessage(tag + ChatColor.translateAlternateColorCodes('&', checkMessages(plugin.messageData.get("alreadyClaimed"))));
 			}
@@ -267,6 +296,7 @@ public class TicketManager {
 					ticket.setClosedDate(new Date());
 					ticket.setState(TicketStates.CLOSED);
 					ticketsToUpdate.add(ticket);
+					decreaseClaimedAmount(ticket.getAssignedTo());
 					sender.sendMessage(tag + ChatColor.translateAlternateColorCodes('&', checkMessages(plugin.messageData.get("closeTicket"))));
 					if (plugin.getConfig().getBoolean("closenotice")) {
 						for (Player p : Bukkit.getServer().getOnlinePlayers()) {
@@ -297,6 +327,7 @@ public class TicketManager {
 		ticketId = id;
 		if (ticket != null) {
 			if (ticket.getState().equals(TicketStates.ASSIGNED)) {
+				decreaseClaimedAmount(ticket.getAssignedTo());
 				ticket.setAssignedTo(null);
 				ticket.setState(TicketStates.OPEN);
 				ticketsToUpdate.add(ticket);
@@ -599,6 +630,7 @@ public class TicketManager {
 				if (ticketState.equals(TicketStates.ASSIGNED)) {
 					String assignedTo = rs.getString("assigned_to");
 					ticket.setAssignedTo(assignedTo);
+					increaseClaimedAmount(assignedTo);
 				} else if (ticketState.equals(TicketStates.CLOSED)) {
 					String closedBy = rs.getString("closed_by");
 					Date closedDate = rs.getDate("closed_date");
@@ -755,6 +787,24 @@ public class TicketManager {
 		} else {
 			return message;
 		}
+	}
+	
+	private void increaseClaimedAmount(String uuid) {
+		if (claimedAmount.containsKey(uuid)) {
+			Integer amount = claimedAmount.get(uuid);
+			amount++;
+			claimedAmount.put(uuid, amount);
+		} else {
+			claimedAmount.put(uuid, 1);
+		}
+	}
+	
+	private void decreaseClaimedAmount(String uuid) {
+		if (claimedAmount.containsKey(uuid)) {
+			Integer amount = claimedAmount.get(uuid);
+			amount--;
+			claimedAmount.put(uuid, amount);
+		} 
 	}
 	
 	private String getName(String uuid) {

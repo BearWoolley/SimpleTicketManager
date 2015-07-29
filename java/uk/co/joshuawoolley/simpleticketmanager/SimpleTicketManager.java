@@ -65,7 +65,7 @@ public class SimpleTicketManager extends JavaPlugin {
 			}
 		}
 		
-		manager = new TicketManager(this, new Queries(connection));
+		manager = new TicketManager(this, new Queries(connection), this.getConfig().getInt("maxtickets"));
 		try {
 			manager.loadInTickets();
 		} catch (SQLException e) {

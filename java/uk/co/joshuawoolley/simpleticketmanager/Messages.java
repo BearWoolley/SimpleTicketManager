@@ -107,7 +107,7 @@ public class Messages {
 		setMessage("openInfo", "&aDo /ticket info <number>  To view more info on a report");
 		setMessage("openClaim", "&aDo /ticket claim <number>  To assign the ticket to yourself");
 		setMessage("openFooter", "&b=======================================");
-		setMessage("assignedTitle", "&b==============&4Assigned Tickets&ab==============");
+		setMessage("assignedTitle", "&b==============&4Assigned Tickets&b==============");
 		setMessage("assignedId", "&aTicket ID: &6");
 		setMessage("assignedInfo", "&aDo /ticket info <number>  To view more info on a report");
 		setMessage("assignedFooter", "&b=======================================");
@@ -143,6 +143,7 @@ public class Messages {
 		setMessage("ticketReload", "&bYou have successfully reloaded the configs!");
 		setMessage("noPermission", "&4You do not have permission to use this command!");
 		setMessage("mustBePlayer", "&4You must be a player to use this command");
+		setMessage("maxTickets", "&cYou have reached the max amount of tickets you can claim");
 	}
 	
 	private void setMessage(String name, String message) {

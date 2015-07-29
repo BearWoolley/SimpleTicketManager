@@ -23,6 +23,9 @@ bungeecord: false
 #Log the amount of players online with each ticket
 players: false
 
+#Maximum number of tickets a player can claim
+maxtickets: 10
+
 #How often the database should be updated
 #The amount of seconds you want
 updateTime: 600
