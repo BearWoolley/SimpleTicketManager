@@ -14,7 +14,7 @@ import uk.co.joshuawoolley.simpleticketmanager.command.CommandHandler;
 import uk.co.joshuawoolley.simpleticketmanager.database.MySQL;
 import uk.co.joshuawoolley.simpleticketmanager.database.Queries;
 import uk.co.joshuawoolley.simpleticketmanager.database.SQLite;
-import uk.co.joshuawoolley.simpleticketmanager.events.PlayerJoin;
+import uk.co.joshuawoolley.simpleticketmanager.listeners.PlayerJoin;
 import uk.co.joshuawoolley.simpleticketmanager.ticketsystem.TicketManager;
 
 /**
