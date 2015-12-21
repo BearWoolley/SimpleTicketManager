@@ -21,6 +21,8 @@ import org.bukkit.scheduler.BukkitRunnable;
 import uk.co.joshuawoolley.simpleticketmanager.SimpleTicketManager;
 import uk.co.joshuawoolley.simpleticketmanager.database.Queries;
 import uk.co.joshuawoolley.simpleticketmanager.enums.TicketStates;
+import uk.co.joshuawoolley.simpleticketmanager.events.SimpleTicketEvent;
+import static java.lang.Math.round;
 
 /**
 * @author Josh Woolley
@@ -99,6 +101,7 @@ public class TicketManager {
 				p.sendMessage(tag + ChatColor.translateAlternateColorCodes('&', checkMessages(plugin.messageData.get("adminUpdate"))));
 			}
 		}
+                plugin.getServer().getPluginManager().callEvent(new SimpleTicketEvent("create", newTicket));
 	}
 	
 	/**
@@ -148,6 +151,7 @@ public class TicketManager {
 			commentsToUpdate.add(ticket);
 			ticketId = ticket.getTicketId();
 			sender.sendMessage(tag + ChatColor.translateAlternateColorCodes('&', checkMessages(plugin.messageData.get("createComment"))));
+                        plugin.getServer().getPluginManager().callEvent(new SimpleTicketEvent("comment", ticket));
 		}
 	}
 	
@@ -259,6 +263,7 @@ public class TicketManager {
 					ticketsToUpdate.add(ticket);
 					increaseClaimedAmount(player);
 					sender.sendMessage(tag + ChatColor.translateAlternateColorCodes('&', checkMessages(plugin.messageData.get("claimTicket"))));
+                                        plugin.getServer().getPluginManager().callEvent(new SimpleTicketEvent("claim", ticket));
 				} else {
 					sender.sendMessage(tag + ChatColor.translateAlternateColorCodes('&', checkMessages(plugin.messageData.get("maxTickets"))));
 				}
@@ -302,6 +307,7 @@ public class TicketManager {
 						for (Player p : Bukkit.getServer().getOnlinePlayers()) {
 							if (p.hasPermission("ticket.admin")) {
 								p.sendMessage(tag + ChatColor.translateAlternateColorCodes('&', checkPlayer(checkMessages(plugin.messageData.get("closeNotice")), player)));
+                                                                plugin.getServer().getPluginManager().callEvent(new SimpleTicketEvent("close", ticket));
 							}
 						}
 					}
@@ -332,6 +338,7 @@ public class TicketManager {
 				ticket.setState(TicketStates.OPEN);
 				ticketsToUpdate.add(ticket);
 				sender.sendMessage(tag + ChatColor.translateAlternateColorCodes('&', checkMessages(plugin.messageData.get("unclaimTicket"))));
+                                plugin.getServer().getPluginManager().callEvent(new SimpleTicketEvent("unclaim", ticket));
 			} else {
 				sender.sendMessage(tag + ChatColor.translateAlternateColorCodes('&', checkMessages(plugin.messageData.get("alreadyUnclaimed"))));
 			}

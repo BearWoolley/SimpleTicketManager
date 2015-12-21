@@ -1,4 +1,4 @@
-package uk.co.joshuawoolley.simpleticketmanager.events;
+package uk.co.joshuawoolley.simpleticketmanager.listeners;
 
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
