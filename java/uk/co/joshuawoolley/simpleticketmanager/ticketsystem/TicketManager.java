@@ -22,7 +22,6 @@ import uk.co.joshuawoolley.simpleticketmanager.SimpleTicketManager;
 import uk.co.joshuawoolley.simpleticketmanager.database.Queries;
 import uk.co.joshuawoolley.simpleticketmanager.enums.TicketStates;
 import uk.co.joshuawoolley.simpleticketmanager.events.SimpleTicketEvent;
-import static java.lang.Math.round;
 
 /**
 * @author Josh Woolley
@@ -158,10 +157,9 @@ public class TicketManager {
 	/**
 	 * Task to keep updating database
 	 */
-	@SuppressWarnings("deprecation")
 	public void startTask() {
 		long delay = plugin.getConfig().getLong("updateTime") * 20;
-		Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, new BukkitRunnable() {
+		BukkitRunnable tasky = new BukkitRunnable() {
 			public void run(){
 				boolean successful = false;
 				int noneUpdated = 0;
@@ -234,7 +232,8 @@ public class TicketManager {
 					Bukkit.getLogger().info("[SimpleTicketManager] New tickets/comments have been added to the server");
 				}
 			}
-		}, 0L, delay);
+		};
+		tasky.runTaskTimerAsynchronously(plugin, 0L, delay);
 
 	}
 	
